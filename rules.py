@@ -24,3 +24,4 @@ def calculate_expected_response(position: str, char: str, number: int) -> bool:
         return is_vowel(char)
     else:
         raise ValueError(f"Posizione non valida: {position}")
+        
