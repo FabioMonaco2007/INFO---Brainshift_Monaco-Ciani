@@ -1,78 +1,106 @@
 import pygame
 import random
+import time
 from generator import generate_trial
-from ui import draw_card #Importiamo la funzione per la card
-from scoring import apply_answer #Importiamo la funzione per il punteggio
+from ui import draw_card
+from scoring import apply_answer
 
 def main():
     pygame.init()
 
+    #Dimensioni richieste
     screen_width = 800
     screen_height = 600
     screen = pygame.display.set_mode((screen_width, screen_height))
-    pygame.display.set_caption("Progetto Informatica - Fase 7")
 
     clock = pygame.time.Clock()
     rng = random.Random()
+    font = pygame.font.SysFont("Arial", 30)
     
-    #Inizializziamo le variabili del gioco
-    current_trial = generate_trial(rng)
+    state = "PLAYING" #Stato iniziale
     score = 0
     correct_count = 0
     wrong_count = 0
+    
+    #Al primo trial salvate start_time
+    start_time = time.time()
+
+    current_trial = generate_trial(rng)
 
     running = True
-    
-    #Inizio del loop principale del gioco
     while running:
-        #Recuperiamo tutti gli eventi (mouse, tastiera, ecc.) avvenuti in questo frame
+        #A ogni frame calcolate elapsed
+        elapsed = time.time() - start_time
+        
+        #Se elapsed >= 60, passate allo stato RESULTS
+        if state == "PLAYING" and elapsed >= 60:
+            state = "RESULTS"
+
         for event in pygame.event.get():
-            
-            #Se l'utente preme la "X" della finestra, il gioco si chiude
             if event.type == pygame.QUIT:
                 running = False
             
-            #Controlliamo se è stato premuto un tasto sulla tastiera
             if event.type == pygame.KEYDOWN:
-                
-                #Se viene premuto ESC, usciamo dal gioco
                 if event.key == pygame.K_ESCAPE:
                     running = False
                 
-                #Inizializziamo la variabile per la risposta dell'utente come "vuota" (None)
-                #Questo serve a resettare la scelta a ogni pressione di un tasto
-                user_answer = None
+                #Gestione durante il gioco
+                if state == "PLAYING":
+                    user_answer = None
+                    if event.key == pygame.K_RIGHT:
+                        user_answer = True
+                    elif event.key == pygame.K_LEFT:
+                        user_answer = False
+                    
+                    if user_answer is not None:
+                        is_correct = (user_answer == current_trial.expected_answer)
+                        score = apply_answer(score, is_correct)
+                        if is_correct:
+                            correct_count += 1
+                        else:
+                            wrong_count += 1
+                        #Genera nuovo trial
+                        current_trial = generate_trial(rng)
                 
-                if event.key == pygame.K_RIGHT:
-                    user_answer = True
-                elif event.key == pygame.K_LEFT:
-                    user_answer = False
-                
-                #Se l'utente ha premuto una delle due frecce
-                if user_answer is not None:
-                    #1. Calcoliamo se la risposta è corretta
-                    is_correct = (user_answer == current_trial.expected_answer)
-                    
-                    #2. Aggiorniamo il punteggio
-                    score = apply_answer(score, is_correct)
-                    
-                    #3. Aggiorniamo i contatori globali
-                    if is_correct:
-                        correct_count += 1
-                    else:
-                        wrong_count += 1
-
-                    print(f"Risposta: {user_answer} | Corretta: {is_correct} | Score: {score}")
-                    print(f"Totali -> Corrette: {correct_count}, Sbagliate: {wrong_count}")
-                    
-                    #4. Generiamo un nuovo trial per la prossima carta
-                    current_trial = generate_trial(rng)
+                #Premendo R reimpostate tutto e tornate in PLAYING
+                elif state == "RESULTS":
+                    if event.key == pygame.K_r:
+                        state = "PLAYING"
+                        score = 0
+                        correct_count = 0
+                        wrong_count = 0
+                        start_time = time.time()
+                        current_trial = generate_trial(rng)
 
         #RENDERING
-        screen.fill((0, 0, 0)) # Sfondo nero
+        screen.fill((0, 0, 0))
 
-        #Disegniamo la carta attuale
-        draw_card(screen, current_trial, None)
+        if state == "PLAYING":
+            #Disegnate la carta
+            draw_card(screen, current_trial, None)
+            
+            #Mostrate il timer in alto (conto alla rovescia)
+            countdown = max(0, int(60 - elapsed))
+            timer_text = font.render(f"Timer: {countdown}", True, (255, 255, 255))
+            screen.blit(timer_text, (350, 20))
+            
+        elif state == "RESULTS":
+            #Mostrate il riepilogo
+            total = correct_count + wrong_count
+            accuracy = (correct_count / total * 100) if total > 0 else 0
+            
+            #Linee di testo
+            lines = [
+                f"Punteggio: {score}",
+                f"Corrette: {correct_count}",
+                f"Sbagliate: {wrong_count}",
+                f"Accuratezza: {accuracy:.1f}%",
+                "Premi R per rigiocare"
+            ]
+            
+            for i, line in enumerate(lines):
+                text_surf = font.render(line, True, (255, 255, 255))
+                screen.blit(text_surf, (300, 200 + (i * 40)))
 
         pygame.display.flip()
         clock.tick(60)
