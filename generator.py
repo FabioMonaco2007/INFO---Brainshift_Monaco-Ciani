@@ -8,21 +8,19 @@ def generate_trial(rng: random.Random) -> Trial:
     #Definiamo la stringa contenente tutte le lettere dell'alfabeto maiuscole
     letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     
-    #Selezioniamo la posizione: 'TOP' o 'BOTTOM'.
-    #Usiamo rng.choice() invece di random.choice() per usare il seed di main.py
+    #Selezioniamo la posizione: 'TOP' o 'BOTTOM'
     position = rng.choice(['TOP', 'BOTTOM'])
     
-    #Selezioniamo una lettera a caso dalla stringa definita sopra
+    #Selezioniamo una lettera a caso dalla stringa
     letter = rng.choice(letters)
     
     #Selezioniamo un numero intero compreso tra 1 e 9 (inclusi)
     number = rng.randint(1, 9)
 
-    #Questa funzione riceve i tre parametri appena estratti
+    #Calcoliamo la risposta attesa usando la funzione corretta da rules.py
     expected_answer = compute_expected_answer(position, letter, number)
 
-    #Creiamo e restituiamo l'oggetto Trial con tutti i dati generati.
-    #Assicurati che l'ordine dei parametri corrisponda a quello in models.py
+    #Creiamo e restituiamo l'oggetto Trial con tutti i dati generati
     return Trial(
         position = position,
         letter = letter,

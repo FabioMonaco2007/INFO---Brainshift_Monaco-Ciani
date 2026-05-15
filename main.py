@@ -1,42 +1,47 @@
 import pygame
+import random
+from generator import generate_trial
+from ui import draw_card
 
 def main():
-    #Inizializza tutti i moduli di pygame 
     pygame.init()
 
-    #Configurazione della finestra (800x600)
     screen_width = 800
     screen_height = 600
     screen = pygame.display.set_mode((screen_width, screen_height))
+    pygame.display.set_caption("Progetto Informatica - Fase 6")
 
-    #Creazione del Clock per gestire il framerate 
     clock = pygame.time.Clock()
+    
+    #Inizializziamo il generatore di numeri casuali
+    rng = random.Random()
+    
+    #GENERIAMO IL TRIAL (La carta da visualizzare)
+    #Lo facciamo prima del loop così rimane fisso a schermo
+    current_trial = generate_trial(rng)
 
     running = True
     while running:
-        #1. Gestione Eventi
         for event in pygame.event.get():
-            #Chiusura tramite la X della finestra
             if event.type == pygame.QUIT:
                 running = False
             
-            #Chiusura tramite il tasto ESC
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     running = False
 
-        #2. Aggiornamento Logica (vuoto per ora)
-
-        #3. Finestra nera
+        #LOGICA: per ora non dobbiamo aggiornare nulla
+        
+        #RENDERING - Sfondo nero
         screen.fill((0, 0, 0))
 
-        #Aggiorna il display 
-        pygame.display.flip()
+        #Chiamiamo la funzione per disegnare la carta
+        #Passiamo None a config perché per ora non lo stiamo usando
+        draw_card(screen, current_trial, None)
 
-        #Limita il framerate a 60 FPS 
+        pygame.display.flip()
         clock.tick(60)
 
-    #Uscita pulita dal gioco
     pygame.quit()
 
 if __name__ == "__main__":
