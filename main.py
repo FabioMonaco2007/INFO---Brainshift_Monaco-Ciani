@@ -8,31 +8,35 @@ from scoring import apply_answer
 def main():
     pygame.init()
 
-    #Dimensioni richieste
     screen_width = 800
     screen_height = 600
     screen = pygame.display.set_mode((screen_width, screen_height))
-
     clock = pygame.time.Clock()
     rng = random.Random()
-    font = pygame.font.SysFont("Arial", 30)
+    font = pygame.font.SysFont("times-new-roman", 35)
     
-    state = "PLAYING" #Stato iniziale
+    # --- VARIABILI DI STATO ---
+    state = "PLAYING"
     score = 0
     correct_count = 0
     wrong_count = 0
     
-    #Al primo trial salvate start_time
     start_time = time.time()
-
     current_trial = generate_trial(rng)
+
+    # --- VARIABILI PER IL FEEDBACK  ---
+    #Registra fino a quale momento nel tempo il feedback deve rimanere attivo
+    feedback_until = 0.0
+    #Memorizza il colore da dare alla carta durante il feedback
+    feedback_color = (255, 255, 255) #Bianco di default (nessun feedback)
+    #Conserva la carta a cui l'utente sta rispondendo per mostrarla colorata
+    feedback_trial = None
 
     running = True
     while running:
-        #A ogni frame calcolate elapsed
+        #Calcolo del tempo per il gioco
         elapsed = time.time() - start_time
         
-        #Se elapsed >= 60, passate allo stato RESULTS
         if state == "PLAYING" and elapsed >= 60:
             state = "RESULTS"
 
@@ -44,8 +48,12 @@ def main():
                 if event.key == pygame.K_ESCAPE:
                     running = False
                 
-                #Gestione durante il gioco
+                #LOGICA DURANTE IL GIOCO
                 if state == "PLAYING":
+                    #ATTENZIONE: Se il feedback visivo è attivo, ignoriamo i tasti premuti per evitare che l'utente risponda a raffica durante i 150ms
+                    if time.time() < feedback_until:
+                        continue
+
                     user_answer = None
                     if event.key == pygame.K_RIGHT:
                         user_answer = True
@@ -59,10 +67,24 @@ def main():
                             correct_count += 1
                         else:
                             wrong_count += 1
-                        #Genera nuovo trial
+                        
+                        #LOGICA FEEDBACK VISIVO
+                        #Impostiamo il timer per il feedback a 150ms nel futuro (+ 0.15)
+                        feedback_until = time.time() + 0.15
+                        
+                        #Scegliamo il colore in base alla correttezza: Verde o Rosso
+                        if is_correct:
+                            feedback_color = (0, 255, 0)   #Verde
+                        else:
+                            feedback_color = (255, 0, 0)   #Rosso
+
+                        #Salviamo il vecchio trial per mostrarlo colorato durante il feedback
+                        feedback_trial = current_trial
+
+                        #Carichiamo subito la carta successiva
                         current_trial = generate_trial(rng)
                 
-                #Premendo R reimpostate tutto e tornate in PLAYING
+                #LOGICA NELLA SCHERMATA RISULTATI
                 elif state == "RESULTS":
                     if event.key == pygame.K_r:
                         state = "PLAYING"
@@ -70,26 +92,45 @@ def main():
                         correct_count = 0
                         wrong_count = 0
                         start_time = time.time()
+                        feedback_until = 0.0
+                        feedback_trial = None
                         current_trial = generate_trial(rng)
 
-        #RENDERING
+        # --- RENDERING ---
         screen.fill((0, 0, 0))
 
         if state == "PLAYING":
-            #Disegnate la carta
-            draw_card(screen, current_trial, None)
+            #CONTROLLO SE IL FEEDBACK È ANCORA ATTIVO 
+            if time.time() < feedback_until and feedback_trial is not None:
+                
+                #Disegniamo un rettangolo colorato (Verde/Rosso) grande come la carta
+                card_width = 100
+                card_height = 140
+                x = (screen_width - card_width) // 2
+                y = 100 if feedback_trial.position == 'TOP' else 350
+                
+                #Disegniamo lo sfondo colorato di feedback
+                pygame.draw.rect(screen, feedback_color, pygame.Rect(x, y, card_width, card_height))
+                
+                #Sopra ci stampiamo il testo della carta
+                font_card = pygame.font.SysFont("times-new-roman", 50)
+                content = f"{feedback_trial.letter} {feedback_trial.number}"
+                text_surface = font_card.render(content, True, (0, 0, 0))
+                text_rect = text_surface.get_rect(center=(x + card_width//2, y + card_height//2))
+                screen.blit(text_surface, text_rect)
+            else:
+                #Se il feedback non è attivo, disegna la carta normale (Bianca)
+                draw_card(screen, current_trial, None)
             
-            #Mostrate il timer in alto (conto alla rovescia)
+            #Mostriamo il timer
             countdown = max(0, int(60 - elapsed))
             timer_text = font.render(f"Timer: {countdown}", True, (255, 255, 255))
             screen.blit(timer_text, (350, 20))
             
         elif state == "RESULTS":
-            #Mostrate il riepilogo
             total = correct_count + wrong_count
             accuracy = (correct_count / total * 100) if total > 0 else 0
             
-            #Linee di testo
             lines = [
                 f"Punteggio: {score}",
                 f"Corrette: {correct_count}",
