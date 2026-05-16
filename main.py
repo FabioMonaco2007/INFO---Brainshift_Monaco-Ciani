@@ -29,7 +29,7 @@ def main():
     #Registra fino a quale momento nel tempo il feedback deve rimanere attivo
     feedback_until = 0.0
     #Memorizza il colore da dare alla carta durante il feedback
-    feedback_color = (255, 255, 255) #Bianco di default (nessun feedback)
+    feedback_color = (240, 240, 240) #Bianco morbido di default (nessun feedback)
     #Conserva la carta a cui l'utente sta rispondendo per mostrarla colorata
     feedback_trial = None
 
@@ -75,9 +75,9 @@ def main():
                         
                         #Scegliamo il colore in base alla correttezza: Verde o Rosso
                         if is_correct:
-                            feedback_color = (0, 255, 0)   #Verde
+                            feedback_color = (46, 139, 87)   #Verde SeaGreen (Morbido)
                         else:
-                            feedback_color = (255, 0, 0)   #Rosso
+                            feedback_color = (178, 34, 34)   #Rosso FireBrick (Morbido)
 
                         #Salviamo il vecchio trial per mostrarlo colorato durante il feedback
                         feedback_trial = current_trial
@@ -98,7 +98,8 @@ def main():
                         current_trial = generate_trial(rng)
 
         # --- RENDERING ---
-        screen.fill((0, 0, 0))
+        #Sfondo grigio scurissimo molto più elegante del nero puro
+        screen.fill((30, 30, 30))
 
         if state == "PLAYING":
             #CONTROLLO SE IL FEEDBACK È ANCORA ATTIVO 
@@ -127,7 +128,7 @@ def main():
             #Smettiamo di disegnarlo quando corrette >= 10
             if correct_count < 10:
                 #Definiamo il colore grigio chiaro (200, 200, 200)
-                rule_color = (200, 200, 200)
+                rule_color = (180, 180, 180)
                 
                 #Regola per la posizione ALTO (TOP)
                 top_text = instruction_font.render("In ALTO: Il numero è PARI?", True, rule_color)
@@ -139,8 +140,8 @@ def main():
             
             #Mostriamo il timer
             countdown = max(0, int(60 - elapsed))
-            timer_text = font.render(f"Timer: {countdown}", True, (255, 255, 255))
-            screen.blit(timer_text, (350, 20))
+            timer_text = font.render(f"Timer: {countdown}", True, (240, 240, 240))
+            screen.blit(timer_text, (screen_width // 2 - timer_text.get_width() // 2, 15))
             
         elif state == "RESULTS":
             total = correct_count + wrong_count
@@ -155,8 +156,8 @@ def main():
             ]
             
             for i, line in enumerate(lines):
-                text_surf = font.render(line, True, (255, 255, 255))
-                screen.blit(text_surf, (300, 200 + (i * 40)))
+                text_surf = font.render(line, True, (240, 240, 240))
+                screen.blit(text_surf, (screen_width // 2 - text_surf.get_width() // 2, 200 + (i * 45)))
 
         pygame.display.flip()
         clock.tick(60)
