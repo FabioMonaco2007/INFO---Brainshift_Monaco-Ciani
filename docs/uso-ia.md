@@ -14,61 +14,26 @@ L'IA è consentita come assistente (spiegazioni, suggerimenti, debug, codice di 
 
 Elencate gli strumenti IA che il gruppo ha effettivamente usato durante il progetto:
 
-- [ ] ChatGPT (modello: …)
-- [ ] Claude (modello: …)
-- [ ] GitHub Copilot
-- [ ] Gemini (modello: …)
-- [ ] altro: …
-
-Se non avete usato IA, dichiaratelo esplicitamente.
-
----
+- [ ] Gemini (Modello: Advanced) — Utilizzato per il debug della logica temporale non bloccante, suggerimenti sulla palette di colori da utilizzare e cosigli generali su alcuni piccoli problemi di coding riscontrati durante l'implementazione.
 
 ## Uso granulare per modulo / parte
 
-Per **ogni parte del codice** in cui avete usato l'IA, una entry strutturata. Copiate il template sottostante quante volte serve.
+### Parte 1
+* **Dove**: `main.py`, gestione del feedback visivo nel blocco eventi e rendering.
+* **Cosa abbiamo chiesto**: Come far colorare di verde o rosso la carta appena risposta per 150ms senza usare `time.sleep()`, dato che quest'ultimo congelava l'intera finestra di Pygame.
+* **Cosa ci ha suggerito**: Ci ha suggerito di salvare lo stato della carta precedente in una variabile di appoggio (cache) prima di generare il nuovo trial, impostando un timestamp futuro (`time.time() + 0.15`). Nel rendering, finché il tempo corrente è minore del timestamp, disegniamo manualmente il rettangolo colorato basandoci sulla carta vecchia.
+* **Cosa abbiamo fatto**: Abbiamo integrato perfettamente la logica modificando il nostro ciclo di eventi in `main.py` e introducendo la variabile `feedback_trial`. Questo ha risolto il bug visivo mantenendo il gioco fluido e rispondente a 60 FPS.
 
-### Template
-
-**Dove**: `scoring.py`, funzione `apply_correct_answer` (righe 34-52)
-
-**Cosa abbiamo chiesto**: in sintesi, la richiesta fatta all'IA. Anche solo una frase tipo «come gestire la saturazione del moltiplicatore a 10?».
-
-**Cosa ci ha suggerito**: sintesi della risposta dell'IA, o snippet originale.
-
-**Cosa abbiamo fatto**:
-- [ ] accettato integralmente
-- [ ] modificato adattandolo al nostro codice
-- [ ] preso solo l'idea e riscritto
-- [ ] rifiutato, perché…
-
-**Perché**: se avete modificato o rifiutato, spiegate cosa non andava. Se avete accettato integralmente, spiegate come avete verificato che il codice fosse corretto.
-
----
-
-## Verifiche di comprensione
-
-Dopo ogni uso dell'IA su parti di codice non banali, fatevi questa domanda: «Se il docente mi chiede di spiegare questa riga all'orale, so farlo?». Se la risposta è no, fermatevi e chiedete all'IA di *spiegare*, non di *scrivere*.
-
-All'orale, ogni membro del gruppo deve saper spiegare ogni parte del codice. Se avete usato l'IA senza capire, all'orale si vede immediatamente.
-
----
+### Parte 2
+* **Dove**: `main.py`, blocco di rendering e configurazione grafica.
+* **Cosa abbiamo chiesto**: Come allineare in modo pulito e centrato i testi della schermata dei risultati e del timer, e quali valori RGB usare per evitare colori primari troppo accesi.
+* **Cosa ci ha suggerito**: Ci ha fornito le formule matematiche basate su `screen_width // 2 - text.get_width() // 2` per calcolare l'offset esatto di blit e ci ha proposto una palette di colori "pastello" (`SeaGreen`, `FireBrick` e uno sfondo grigio scuro `30, 30, 30`).
+* **Cosa abbiamo fatto**: Abbiamo applicato le modifiche alle coordinate del testo e aggiornato i codici RGB delle tuple nel codice, ottenendo un'interfaccia simmetrica e molto più gradevole da vedere.
 
 ## Cosa non abbiamo chiesto all'IA
 
-Elencate esplicitamente le parti che avete scritto **senza** assistenza IA. Serve a voi per esercitare la consapevolezza, e al docente per avere un confronto.
-
-Esempi:
-- tutti i test pytest
-- `docs/devlog.md` e `docs/scelte.md`
-- la logica del generatore
-- …
-
----
-
-### Domande-guida
-
-1. La dichiarazione è **granulare** (modulo per modulo, funzione per funzione) o generica («abbiamo usato ChatGPT qualche volta»)?
-2. Per ogni uso dell'IA sapreste rispondere se il docente vi chiedesse «spiegami perché questa riga fa così»?
-3. Avete distinto fra *chiedere spiegazioni* e *far scrivere codice*?
-4. Questa pagina è coerente con quello che il docente vedrà leggendo il codice?
+Le seguenti parti sono state progettate, scritte e collaudate interamente da noi senza alcun supporto esterno:
+* La separazione in moduli del progetto e la struttura della dataclass `Trial` in `models.py`.
+* La logica pura di controllo delle regole (`is_even`, `is_vowel` e `compute_expected_answer`) in `rules.py`.
+* La logica di incremento e decremento del punteggio bloccato a zero in `scoring.py`.
+* Tutti i diari di bordo, l'architettura e le riflessioni contenute in questi file di documentazione.

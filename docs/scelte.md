@@ -4,82 +4,31 @@
 
 ## Scelte rilevanti
 
-Per ciascuna scelta non banale che avete fatto, scrivete:
+### 1. Rappresentazione dei dati con una Dataclass pura
+- **Cosa**: Abbiamo scelto di usare la `dataclass Trial` in `models.py` per salvare tutte le informazioni relative a una singola carta.
+- **Perché**: Evita di dover passare dizionari o tuple anonime tra i moduli, garantendo che i campi (`letter`, `number`, `position`, `expected_answer`) siano fissi e documentati.
+- **Alternative considerate**: Usare un dizionario standard (`dict`). Scartato perché espone al rischio di errori di battitura nelle chiavi (es. scrivere `"pos"` al posto di `"position"`) difficili da intercettare subito.
+- **Conseguenze**: Il passaggio di dati tra `generator.py`, `ui.py` e `main.py` è diventato rigidamente tipizzato e molto pulito.
 
-1. **Cosa**: la scelta in una riga.
-2. **Perché**: la ragione. Vincoli? Pregi? Abitudine?
-3. **Alternative considerate**: almeno una alternativa che avete valutato e scartato.
-4. **Conseguenze**: cosa è diventato facile e cosa è diventato difficile per colpa di questa scelta.
+### 2. Gestione del tempo tramite modulo standard `time`
+- **Cosa**: Abbiamo usato `time.time()` sia per gestire la durata della sessione (i 60 secondi), sia per calcolare la scadenza del feedback visivo.
+- **Perché**: Fornisce timestamp precisi in secondi (con decimali per i millisecondi) indipendenti dal frame-rate effettivo di Pygame.
+- **Alternative considerate**: Utilizzare `pygame.time.get_ticks()`. Scartata perché volevamo che la logica temporale principale non fosse strettamente legata alle funzioni di Pygame, facilitando calcoli lineari basati sul tempo reale di sistema.
+- **Conseguenze**: Il calcolo del countdown e della finestra di feedback di 150ms avviene tramite semplici sottrazioni matematiche nel loop principale, senza appesantire la macchina.
 
-### Esempio di formato
+### 3. Feedback visivo non bloccante tramite cache del trial precedente
+- **Cosa**: Quando l'utente risponde, salviamo il trial corrente in una variabile di appoggio `feedback_trial`, generiamo subito la nuova carta in background e attiviamo un timer di 150ms per colorare la vecchia posizione.
+- **Perché**: Se avessimo usato un blocco hardware come `time.sleep(0.150)`, avremmo congelato l'intera finestra di gioco, bloccando il refresh dello schermo e la chiusura della finestra.
+- **Alternative considerate**: Utilizzare un sistema a frame o congelare il loop. Scartata perché l'interfaccia sarebbe risultata scattante e poco fluida.
+- **Conseguenze**: Il loop gira fluidamente a 60 FPS stabili. L'utente vede la vecchia carta colorarsi di verde o rosso pastello per 150ms, mentre la nuova carta è già pronta in memoria per apparire subito dopo.
 
-**Scelta**: rappresentiamo la posizione della carta con un `Enum` (`Position.TOP`, `Position.BOTTOM`) invece che con una stringa.
-
-**Perché**: autocompletamento nell'IDE, impossibile passare un valore errato per sbaglio, codice più leggibile nei `match`.
-
-**Alternative considerate**: stringhe ("top", "bottom"). Scartata perché troppo facile scrivere "Top" invece di "top" e introdurre un bug silenzioso.
-
-**Conseguenze**: un import in più nei moduli che usano la posizione; nessuno svantaggio concreto.
-
----
-
-## Sezioni da trattare
-
-Non dovete coprire tutte queste sezioni in modo rigido: sceglietene le più rilevanti per il vostro progetto e approfonditele.
-
-### Struttura del progetto
-
-Perché quella decomposizione in moduli? Avete valutato un'unica libreria `game.py`?
-
-### Scoring
-
-Come avete tradotto la formula della specifica in codice? `dict` mutabile, `dataclass` mutabile, funzioni pure che restituiscono un nuovo stato?
-
-### Generatore
-
-Che algoritmo usate per bilanciare YES/NO? Rigenerate i trial sbilanciati o aggiustate dopo? Come gestite il seed?
-
-### Gestione del tempo
-
-Come tenete traccia del timer di sessione? `time.time()`, `pygame.time.get_ticks()`, `Clock`? Perché?
-
-### Inter-trial interval
-
-Come lo realizzate senza bloccare il main loop? Variabile di stato + timer? Timestamp della prossima transizione?
-
-### Input
-
-Se avete input multipli, come li normalizzate? Dove avviene la normalizzazione?
-
-### Feedback visivo
-
-Come evitate che le animazioni rallentino il loop? Se è un'animazione "a tempo" come la gestite (stato + timestamp)?
-
-### Fading istruzioni
-
-Interpolazione lineare, soglie discrete, funzione ease? Come l'avete implementato?
-
-### Asset grafici / audio
-
-Se ne avete usati, da dove vengono? Licenza? Come li caricate (a init, a richiesta)?
-
----
+### 4. Palette grafiche pastello e sfondo scuro (Polish finali)
+- **Cosa**: Abbiamo sostituito lo sfondo nero puro e i colori RGB saturi con uno sfondo grigio scuro `(30, 30, 30)` e tonalità pastello per il feedback (`SeaGreen` per il corretto e `FireBrick` per l'errore).
+- **Perché**: I colori primari puri sparati a schermo intero stancavano gli occhi durante le sessioni di test e davano al gioco un aspetto amatoriale.
+- **Alternative considerate**: Mantenere i colori base `(0, 255, 0)` e `(255, 0, 0)`. Scartata per ragioni di resa estetica e usabilità visiva.
+- **Conseguenze**: L'applicazione risulta visivamente più rifinita e l'interfaccia è più leggibile grazie alla centratura automatica basata sulle coordinate dello schermo.
 
 ## Cosa non siamo riusciti a fare e perché
 
-Parte importante. Onestà, non scuse.
-
-- cosa avete lasciato fuori
-- cosa avete iniziato e poi abbandonato
-- cosa sapete che è fatto male ma non abbiamo avuto tempo di sistemare
-
-Riconoscere i limiti del proprio progetto è una competenza professionale, non una debolezza.
-
----
-
-### Domande-guida
-
-1. Un lettore capisce **perché** le cose sono come sono, o solo **come** sono?
-2. Ogni scelta descritta ha almeno un'alternativa scartata?
-3. Avete evitato frasi tipo «abbiamo scelto così perché è il modo migliore»? (Non è una spiegazione.)
-4. Questa pagina è scritta da voi, con il vostro stile, o sembra l'output di un'IA?
+- **1:**: Ci siamo limitati a fare "solamente" i requisiti minimi principalmente per mancanza di tempo, essendo che abbiamo dedicato molto tempo nel cercare di fare le cose in modo super ordinato per non perderci nulla e non confonderci tra i vari file e cartelle presenti.
+- **2:**: Inoltre ci sarebbe piaciuto rendere la schermata di gioco un po' più carina da vedere e non lasciarla cosi "minimal". Ma anche qui per mancanza di tempo, e anche per alcune nostre mancanze, non siamo stati in grado di farlo.
