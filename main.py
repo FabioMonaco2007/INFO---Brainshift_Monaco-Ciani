@@ -14,6 +14,7 @@ def main():
     clock = pygame.time.Clock()
     rng = random.Random()
     font = pygame.font.SysFont("times-new-roman", 35)
+    instruction_font = pygame.font.SysFont("times-new-roman", 24)
     
     # --- VARIABILI DI STATO ---
     state = "PLAYING"
@@ -121,6 +122,20 @@ def main():
             else:
                 #Se il feedback non è attivo, disegna la carta normale (Bianca)
                 draw_card(screen, current_trial, None)
+            
+            # --- ISTRUZIONI DI BASE CON FADING ---
+            #Smettiamo di disegnarlo quando corrette >= 10
+            if correct_count < 10:
+                #Definiamo il colore grigio chiaro (200, 200, 200)
+                rule_color = (200, 200, 200)
+                
+                #Regola per la posizione ALTO (TOP)
+                top_text = instruction_font.render("In ALTO: Il numero è PARI?", True, rule_color)
+                screen.blit(top_text, (screen_width // 2 - top_text.get_width() // 2, 60))
+                
+                #Regola per la posizione BASSO (BOTTOM)
+                bottom_text = instruction_font.render("In BASSO: La lettera è una VOCALE?", True, rule_color)
+                screen.blit(bottom_text, (screen_width // 2 - bottom_text.get_width() // 2, 510))
             
             #Mostriamo il timer
             countdown = max(0, int(60 - elapsed))
